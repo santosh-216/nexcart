@@ -2,10 +2,7 @@ package com.nexcart.model;
 
 import com.nexcart.Enum.CardType;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.util.Date;
@@ -14,6 +11,7 @@ import java.util.Date;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(name="card")
 public class Card {
@@ -24,10 +22,12 @@ public class Card {
     @Column(unique = true)
     String cardNo;
 
+
     int cvv;
 
     Date validTill;
 
+    @Enumerated(EnumType.STRING)
     CardType cardType;
 
     @ManyToOne

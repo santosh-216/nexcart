@@ -3,10 +3,7 @@ package com.nexcart.model;
 import com.nexcart.Enum.ProductCategory;
 import com.nexcart.Enum.ProductStatus;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import lombok.experimental.FieldDefaults;
 
 import java.util.ArrayList;
@@ -17,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Data
+@Builder
 @Table(name = "product")
 public class Product {
 
@@ -30,8 +28,10 @@ public class Product {
 
     int availableQuantity;
 
+    @Enumerated(EnumType.STRING)
     ProductCategory category;
 
+    @Enumerated(EnumType.STRING)
     ProductStatus productStatus;
 
     @OneToMany(mappedBy = "product",cascade = CascadeType.ALL)
