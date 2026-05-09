@@ -10,7 +10,8 @@ import java.util.Date;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Data
+@Getter
+@Setter
 @Builder
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Table(name="card")
@@ -21,7 +22,6 @@ public class Card {
 
     @Column(unique = true)
     String cardNo;
-
 
     int cvv;
 
