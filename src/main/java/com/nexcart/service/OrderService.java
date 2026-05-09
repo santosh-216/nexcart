@@ -36,6 +36,9 @@ public class OrderService {
     @Autowired
     OrderRepository orderRepository;
 
+    @Autowired
+    CardService cardService;
+
     public OrderResponseDto placeOrder(OrderRequestDto orderRequestDto) {
         Customer customer = customerRepository.findByEmailId(orderRequestDto.getCustomerEmail());
         if(customer == null){
@@ -45,7 +48,7 @@ public class OrderService {
         if(optionalProduct.isEmpty()){
             throw new ProductNotFoundException("product doesn't exist");
         }
-        Card card = cardRepository.findByCardNo(orderRequestDto.getCardUsed());
+        Card card = cardRepository.findByCardNo(orderRequestDto.getCardNo());
         Date todayDate = new Date();
         if( card == null || card.getCvv()!= orderRequestDto.getCvv()  || todayDate.after(card.getValidTill())){
             throw new CardNotFoundException("invalid card");
@@ -63,7 +66,7 @@ public class OrderService {
         }
         OrderEntity order = new OrderEntity();
         order.setOrderId(String.valueOf(UUID.randomUUID()));
-        order.setCardUsed(orderRequestDto.getCardUsed());
+        order.setCardUsed(cardService.generateMaskedCard(orderRequestDto.getCardNo()));
         order.setOrderTotal(product.getPrice() * orderRequestDto.getRequiredQuantity());
 
         Item item = ItemTransformer.ItemRequestDtoToItem(orderRequestDto.getRequiredQuantity());
@@ -82,5 +85,35 @@ public class OrderService {
 
         return OrderTransformer.OrderToOrderResponseDto(savedOrder);
 
+    }
+
+    public OrderEntity placeOrder(Cart cart, Card card) {
+
+        OrderEntity order = new OrderEntity();
+        order.setOrderId(String.valueOf(UUID.randomUUID()));
+        order.setCardUsed(cardService.generateMaskedCard(card.getCardNo()));
+
+        int orderTotal = 0;
+
+        for(Item item : cart.getItems()){
+            Product product = item.getProduct();
+            if(product.getAvailableQuantity() < item.getRequiredQuantity()){
+                throw new InsufficientQuantityException("Sorry! Insufficient quatity available for:"+product.getProductName());
+            }
+
+            int newQuantity = product.getAvailableQuantity() - item.getRequiredQuantity();
+            product.setAvailableQuantity(newQuantity);
+            if(newQuantity == 0){
+                product.setProductStatus(ProductStatus.OUT_OF_STOCK);
+            }
+            orderTotal += product.getPrice() * item.getRequiredQuantity();
+            item.setOrderEntity(order);
+        }
+
+        order.setOrderTotal(orderTotal);
+        order.setItems(cart.getItems());
+        order.setCustomer(cart.getCustomer());
+
+        return order;
     }
 }

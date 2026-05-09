@@ -11,7 +11,7 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Data
 public class OrderRequestDto {
-    String cardUsed;
+    String cardNo;
     int productId;
     String customerEmail;
     int requiredQuantity;

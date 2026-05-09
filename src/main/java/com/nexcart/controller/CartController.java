@@ -1,10 +1,13 @@
 package com.nexcart.controller;
 
+import com.nexcart.dto.request.CheckoutCartRequestDto;
 import com.nexcart.dto.request.ItemRequestDto;
 import com.nexcart.dto.response.CartResponseDto;
+import com.nexcart.dto.response.OrderResponseDto;
 import com.nexcart.model.Item;
 import com.nexcart.service.CartService;
 import com.nexcart.service.ItemService;
+import com.nexcart.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +36,16 @@ public class CartController {
         }
         catch (Exception e){
             return new ResponseEntity(e.getMessage(), HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    @PostMapping("/checkout")
+    public ResponseEntity checkoutCart(@RequestBody CheckoutCartRequestDto checkoutCartRequestDto){
+        try {
+            OrderResponseDto orderResponseDto = cartService.placeOrder(checkoutCartRequestDto);
+            return new ResponseEntity(orderResponseDto,HttpStatus.CREATED);
+        } catch (Exception e) {
+            return new ResponseEntity(e.getMessage(),HttpStatus.BAD_REQUEST);
         }
     }
 }
