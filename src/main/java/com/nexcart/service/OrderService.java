@@ -15,6 +15,8 @@ import com.nexcart.repository.ProductRepository;
 import com.nexcart.transformer.ItemTransformer;
 import com.nexcart.transformer.OrderTransformer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
@@ -38,6 +40,9 @@ public class OrderService {
 
     @Autowired
     CardService cardService;
+
+    @Autowired
+    JavaMailSender javaMailSender;
 
     public OrderResponseDto placeOrder(OrderRequestDto orderRequestDto) {
         Customer customer = customerRepository.findByEmailId(orderRequestDto.getCustomerEmail());
@@ -83,9 +88,13 @@ public class OrderService {
         productRepository.save(product);
         customerRepository.save(customer);
 
+        sendEmail(savedOrder);
+
         return OrderTransformer.OrderToOrderResponseDto(savedOrder);
 
     }
+
+
 
     public OrderEntity placeOrder(Cart cart, Card card) {
 
@@ -115,5 +124,36 @@ public class OrderService {
         order.setCustomer(cart.getCustomer());
 
         return order;
+    }
+
+    public void sendEmail(OrderEntity savedOrder) {
+        SimpleMailMessage mail = new SimpleMailMessage();
+
+        String text =
+                "Dear " + savedOrder.getCustomer().getName() + ",\n\n" +
+
+                        "Thank you for shopping with NexCart!\n\n" +
+
+                        "Your order has been placed successfully.\n\n" +
+
+                        "Order Details:\n" +
+                        "Order ID : " + savedOrder.getOrderId() + "\n" +
+                        "Order Date : " + savedOrder.getOrderDate() + "\n" +
+                        "Total Amount : ₹" + savedOrder.getOrderTotal() + "\n" +
+                        "Payment Method : " + savedOrder.getCardUsed() + "\n\n" +
+
+                        "Your order is currently being processed and will be shipped soon.\n\n" +
+
+                        "We appreciate your trust in NexCart.\n\n" +
+
+                        "Regards,\n" +
+                        "Team NexCart";
+
+        mail.setTo(savedOrder.getCustomer().getEmailId());
+        mail.setFrom("global.notify.center@gmail.com");
+        mail.setSubject("Order Confirmation - NexCart");
+        mail.setText(text);
+
+        javaMailSender.send(mail);
     }
 }
